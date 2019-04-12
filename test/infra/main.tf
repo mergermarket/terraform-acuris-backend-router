@@ -8,7 +8,7 @@ module "backend_router" {
   platform_config = "${var.platform_config}"
 
   # optional
-  dns_domain = "domain.com"
+  certificate_domain_name = "*.domain.com"
 }
 
 module "backend_router_external" {
@@ -22,7 +22,7 @@ module "backend_router_external" {
   alb_internal = "false"
 
   # optional
-  dns_domain = "domain.com"
+  certificate_domain_name = "*.domain.com"
 }
 
 # configure provider to not try too hard talking to AWS API
