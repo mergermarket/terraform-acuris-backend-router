@@ -19,7 +19,7 @@ Module Input Variables
 - `env` - (string) - **REQUIRED** - Environment deployed to
 - `component` - (string) - **REQUIRED** - component name
 - `platform_config` - (map) - **REQUIRED** - Mergermarket Platform config dictionary (see tests for example one)
-- `dns_domain` - (string) - **REQUIRED** - domain to be used when looking up SSL Certificate
+- `certificate_domain_name` - (string) - **REQUIRED** - cert domain name to be used when looking up SSL Certificate
 - `alb_internal` - (bool) - If true, the ALB will be internal (default: `true`)
 
 Usage
@@ -28,13 +28,13 @@ Usage
 
 module "backend_router" {
   source          = "mergermarket/backend-router/acuris"
-  version         = "0.1.0"
+  version         = "0.2.1"
 
-  team            = "footeam"
-  env             = "fooenv"
-  component       = "foocomponent"
-  platform_config = "${var.platform_config}"
-  dns_domain      = "domain.com"
+  team                         = "footeam"
+  env                          = "fooenv"
+  component                    = "foocomponent"
+  platform_config              = "${var.platform_config}"
+  certificate_domain_name      = "domain.com"
 }
 ```
 
