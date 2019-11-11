@@ -1,4 +1,4 @@
-Backend Router terraform module
+Backend Router Terraform module
 ===============================
 
 [![Build Status](https://travis-ci.org/mergermarket/terraform-acuris-backend-router.svg?branch=master)](https://travis-ci.org/mergermarket/terraform-acuris-backend-router)
@@ -7,6 +7,7 @@ This module creates a Backend Router service which, in effect, is a shared ALB t
 Ideally, there should be a single Backend Router per Team (e.g. platform-backend-router).
 
 The Backend Router consists of:
+
 - an ALB
 - default, HTTPS Listener, with a certificate as per `dns_domain` parameter, by default diverting traffic to `404` ECS Service
 
@@ -24,6 +25,7 @@ Module Input Variables
 
 Usage
 -----
+
 ```hcl
 
 module "backend_router" {
@@ -40,7 +42,15 @@ module "backend_router" {
 
 Outputs
 -------
+
 - `alb_dns_name` - The DNS name of the load balancer
 - `alb_arn` - The AWS ARN of the load balancer
 - `alb_listener_arn` - The ARN of the load balancer listener
 - `default_target_group_arn` - The ARN of the target group
+
+Architecture
+------------
+
+This module is the `backend-router` box in the diagram below:
+
+![Backend routing architecture](./docs/backend-routing.png)
