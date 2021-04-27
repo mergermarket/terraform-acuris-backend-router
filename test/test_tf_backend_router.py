@@ -3,6 +3,10 @@ from subprocess import check_call, check_output
 
 
 class TestTFBackendRouter(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        check_call(['terraform', 'init'])
+        return super().setUpClass()
 
     def setUp(self):
         check_call(['terraform', 'get', 'test/infra'])
@@ -15,7 +19,6 @@ class TestTFBackendRouter(unittest.TestCase):
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router.module.alb',
             '-no-color',
@@ -35,7 +38,6 @@ Plan: 4 to add, 0 to change, 0 to destroy.
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router.module.alb',
             '-no-color',
@@ -44,35 +46,46 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 
         # Then
         assert """
-+ module.backend_router.alb.aws_alb.alb
-    access_logs.#:              "1"
-    access_logs.0.enabled:      "false"
-    arn:                        "<computed>"
-    arn_suffix:                 "<computed>"
-    dns_name:                   "<computed>"
-    enable_deletion_protection: "false"
-    idle_timeout:               "60"
-    internal:                   "true"
-    ip_address_type:            "<computed>"
-    name:                       "dev-foobar-router"
-    security_groups.#:          "<computed>"
-    subnets.#:                  "3"
-        """.strip() in output # noqa
+  # module.backend_router.module.alb.aws_alb.alb will be created
+  + resource "aws_alb" "alb" {
+      + arn                        = (known after apply)
+      + arn_suffix                 = (known after apply)
+      + dns_name                   = (known after apply)
+      + drop_invalid_header_fields = false
+      + enable_deletion_protection = false
+      + enable_http2               = true
+      + id                         = (known after apply)
+      + idle_timeout               = 60
+      + internal                   = true
+      + ip_address_type            = (known after apply)
+      + load_balancer_type         = "application"
+      + name                       = "dev-foobar-router"
+      + security_groups            = (known after apply)
+      + subnets                    = [
+          + "subnet-00000000",
+          + "subnet-11111111",
+          + "subnet-22222222",
+        ]
+      + tags                       = {
+          + "component"   = "foobar"
+          + "environment" = "dev"
+          + "team"        = "foobar"
+        }
+      + vpc_id                     = (known after apply)
+      + zone_id                    = (known after apply)
 
-        assert """
-    subnets.#:                  "3"
-    subnets.1120168869:         "subnet-11111111"
-    subnets.155686431:          "subnet-00000000"
-    subnets.2655022443:         "subnet-22222222"
-        """.strip() in output # noqa
+      + access_logs {
+          + enabled = false
+        }
 
-        assert """
-    tags.%:                     "3"
-    tags.component:             "foobar"
-    tags.environment:           "dev"
-    tags.team:                  "foobar"
-    vpc_id:                     "<computed>"
-    zone_id:                    "<computed>"
+      + subnet_mapping {
+          + allocation_id        = (known after apply)
+          + ipv6_address         = (known after apply)
+          + outpost_id           = (known after apply)
+          + private_ipv4_address = (known after apply)
+          + subnet_id            = (known after apply)
+        }
+    }
         """.strip() in output # noqa
 
     def test_create_alb_listener(self):
@@ -83,7 +96,6 @@ Plan: 4 to add, 0 to change, 0 to destroy.
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router.module.alb',
             '-no-color',
@@ -92,16 +104,21 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 
         # Then
         assert """
-+ module.backend_router.alb.aws_alb_listener.https
-    arn:                               "<computed>"
-    certificate_arn:                   "${module.aws_acm_certificate_arn.arn}"
-    default_action.#:                  "1"
-    default_action.0.target_group_arn: "${var.default_target_group_arn}"
-    default_action.0.type:             "forward"
-    load_balancer_arn:                 "${aws_alb.alb.arn}"
-    port:                              "443"
-    protocol:                          "HTTPS"
-    ssl_policy:                        "<computed>"
+  # module.backend_router.module.alb.aws_alb_listener.https will be created
+  + resource "aws_alb_listener" "https" {
+      + arn               = (known after apply)
+      + id                = (known after apply)
+      + load_balancer_arn = (known after apply)
+      + port              = 443
+      + protocol          = "HTTPS"
+      + ssl_policy        = (known after apply)
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
         """.strip() in output # noqa
 
     def test_create_alb_security_group(self):
@@ -112,7 +129,6 @@ Plan: 4 to add, 0 to change, 0 to destroy.
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router.module.alb',
             '-no-color',
@@ -121,38 +137,60 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 
         # Then
         assert """
-+ module.backend_router.alb.aws_security_group.default
-    description:                           "Managed by Terraform"
-    egress.#:                              "1"
-    egress.482069346.cidr_blocks.#:        "1"
-    egress.482069346.cidr_blocks.0:        "0.0.0.0/0"
-    egress.482069346.from_port:            "0"
-    egress.482069346.ipv6_cidr_blocks.#:   "0"
-    egress.482069346.prefix_list_ids.#:    "0"
-    egress.482069346.protocol:             "-1"
-    egress.482069346.security_groups.#:    "0"
-    egress.482069346.self:                 "false"
-    egress.482069346.to_port:              "0"
-    ingress.#:                             "2"
-    ingress.2214680975.cidr_blocks.#:      "1"
-    ingress.2214680975.cidr_blocks.0:      "0.0.0.0/0"
-    ingress.2214680975.from_port:          "80"
-    ingress.2214680975.ipv6_cidr_blocks.#: "0"
-    ingress.2214680975.protocol:           "tcp"
-    ingress.2214680975.security_groups.#:  "0"
-    ingress.2214680975.self:               "false"
-    ingress.2214680975.to_port:            "80"
-    ingress.2617001939.cidr_blocks.#:      "1"
-    ingress.2617001939.cidr_blocks.0:      "0.0.0.0/0"
-    ingress.2617001939.from_port:          "443"
-    ingress.2617001939.ipv6_cidr_blocks.#: "0"
-    ingress.2617001939.protocol:           "tcp"
-    ingress.2617001939.security_groups.#:  "0"
-    ingress.2617001939.self:               "false"
-    ingress.2617001939.to_port:            "443"
-    name:                                  "<computed>"
-    owner_id:                              "<computed>"
-    vpc_id:                                "vpc-12345678"
+  # module.backend_router.module.alb.aws_security_group.default will be created
+  + resource "aws_security_group" "default" {
+      + arn                    = (known after apply)
+      + description            = "Managed by Terraform"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 443
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 80
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 80
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + vpc_id                 = "vpc-12345678"
+    }
         """.strip() in output # noqa
 
     def test_create_external_alb(self):
@@ -163,7 +201,6 @@ Plan: 4 to add, 0 to change, 0 to destroy.
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router_external.module.alb',
             '-no-color',
@@ -172,26 +209,46 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 
         # Then
         assert """
-+ module.backend_router_external.alb.aws_alb.alb
-    access_logs.#:              "1"
-    access_logs.0.enabled:      "false"
-    arn:                        "<computed>"
-    arn_suffix:                 "<computed>"
-    dns_name:                   "<computed>"
-    enable_deletion_protection: "false"
-    idle_timeout:               "60"
-    internal:                   "false"
-    ip_address_type:            "<computed>"
-    name:                       "dev-foobar-router"
-    security_groups.#:          "<computed>"
-    subnets.#:                  "3"
-        """.strip() in output # noqa
+  # module.backend_router_external.module.alb.aws_alb.alb will be created
+  + resource "aws_alb" "alb" {
+      + arn                        = (known after apply)
+      + arn_suffix                 = (known after apply)
+      + dns_name                   = (known after apply)
+      + drop_invalid_header_fields = false
+      + enable_deletion_protection = false
+      + enable_http2               = true
+      + id                         = (known after apply)
+      + idle_timeout               = 60
+      + internal                   = false
+      + ip_address_type            = (known after apply)
+      + load_balancer_type         = "application"
+      + name                       = "dev-foobar-router"
+      + security_groups            = (known after apply)
+      + subnets                    = [
+          + "subnet-33333333",
+          + "subnet-44444444",
+          + "subnet-555555555",
+        ]
+      + tags                       = {
+          + "component"   = "foobar"
+          + "environment" = "dev"
+          + "team"        = "foobar"
+        }
+      + vpc_id                     = (known after apply)
+      + zone_id                    = (known after apply)
 
-        assert """
-    subnets.#:                  "3"
-    subnets.2377178398:         "subnet-555555555"
-    subnets.3586363601:         "subnet-33333333"
-    subnets.4231620278:         "subnet-44444444"
+      + access_logs {
+          + enabled = false
+        }
+
+      + subnet_mapping {
+          + allocation_id        = (known after apply)
+          + ipv6_address         = (known after apply)
+          + outpost_id           = (known after apply)
+          + private_ipv4_address = (known after apply)
+          + subnet_id            = (known after apply)
+        }
+    }
         """.strip() in output # noqa
 
     def test_default_target_group(self):
@@ -202,7 +259,6 @@ Plan: 4 to add, 0 to change, 0 to destroy.
             '-var', 'env=dev',
             '-var', 'component=foobar',
             '-var', 'team=foobar',
-            '-var', 'aws_region=eu-west-1',
             '-var-file=test/platform-config/eu-west-1.json',
             '-target=module.backend_router',
             '-no-color',
@@ -211,22 +267,40 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 
         # Then
         assert """
-+ module.backend_router.aws_alb_target_group.default_target_group
-    arn:                                "<computed>"
-    arn_suffix:                         "<computed>"
-    deregistration_delay:               "10"
-    health_check.#:                     "1"
-    health_check.0.healthy_threshold:   "2"
-    health_check.0.interval:            "5"
-    health_check.0.matcher:             "200-299"
-    health_check.0.path:                "/internal/healthcheck"
-    health_check.0.port:                "traffic-port"
-    health_check.0.protocol:            "HTTP"
-    health_check.0.timeout:             "4"
-    health_check.0.unhealthy_threshold: "2"
-    name:                               "dev-default-foobar"
-    port:                               "31337"
-    protocol:                           "HTTP"
-    stickiness.#:                       "<computed>"
-    vpc_id:                             "vpc-12345678"
+  # module.backend_router.aws_alb_target_group.default_target_group will be created
+  + resource "aws_alb_target_group" "default_target_group" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + deregistration_delay               = 10
+      + id                                 = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancing_algorithm_type      = (known after apply)
+      + name                               = "dev-default-foobar"
+      + port                               = 31337
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 0
+      + target_type                        = "instance"
+      + vpc_id                             = "vpc-12345678"
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 5
+          + matcher             = "200-299"
+          + path                = "/internal/healthcheck"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 4
+          + unhealthy_threshold = 2
+        }
+
+      + stickiness {
+          + cookie_duration = (known after apply)
+          + enabled         = (known after apply)
+          + type            = (known after apply)
+        }
+    }
         """.strip() in output # noqa

@@ -82,3 +82,7 @@ variable "default_target_group_health_check_matcher" {
   default     = "200-299"
 }
 
+variable "run_data" {
+  description = "Used to switch off data resources when unit testing"
+  default     = true
+}

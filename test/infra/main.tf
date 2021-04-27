@@ -2,26 +2,25 @@
 module "backend_router" {
   source = "../.."
 
-  team            = "${var.team}"
-  env             = "${var.env}"
-  component       = "${var.component}"
-  platform_config = "${var.platform_config}"
+  team                    = var.team
+  env                     = var.env
+  component               = var.component
+  platform_config         = var.platform_config
 
-  # optional
+  run_data                = false
   certificate_domain_name = "*.domain.com"
 }
 
 module "backend_router_external" {
   source = "../.."
 
-  team            = "${var.team}"
-  env             = "${var.env}"
-  component       = "${var.component}"
-  platform_config = "${var.platform_config}"
+  team                    = var.team
+  env                     = var.env
+  component               = var.component
+  platform_config         = var.platform_config
+  alb_internal            = "false"
 
-  alb_internal = "false"
-
-  # optional
+  run_data                = false
   certificate_domain_name = "*.domain.com"
 }
 
@@ -46,5 +45,5 @@ variable "env" {}
 variable "component" {}
 
 variable "platform_config" {
-  type = "map"
+  type = map(string)
 }
