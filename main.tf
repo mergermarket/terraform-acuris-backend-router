@@ -20,7 +20,7 @@ module "alb" {
   default_target_group_arn = aws_alb_target_group.default_target_group.arn
   access_logs_bucket       = lookup(var.platform_config, "elb_access_logs_bucket", "")
   access_logs_enabled      = lookup(var.platform_config, "elb_access_logs_bucket", "") == "" ? false : true
-
+  idle_timeout             = var.idle_timeout
   tags = {
     component   = var.component
     environment = var.env

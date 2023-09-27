@@ -86,3 +86,9 @@ variable "run_data" {
   description = "Used to switch off data resources when unit testing"
   default     = true
 }
+
+variable "idle_timeout" {
+  description = "The time in seconds that the connection is allowed to be idle."
+  type        = string
+  default     = "60"
+}
