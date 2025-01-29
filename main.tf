@@ -1,6 +1,6 @@
 module "alb" {
   source  = "mergermarket/alb/acuris"
-  version = "2.0.1"
+  version = "2.1.0"
 
   name   = format("%s-%s-router", var.env, var.component)
   vpc_id = var.platform_config["vpc"]
