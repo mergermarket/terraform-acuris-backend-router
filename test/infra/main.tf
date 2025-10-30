@@ -28,7 +28,6 @@ module "backend_router_external" {
 provider "aws" {
   skip_credentials_validation = true
   skip_metadata_api_check     = true
-  skip_get_ec2_platforms      = true
   skip_region_validation      = true
   skip_requesting_account_id  = true
   max_retries                 = 1
@@ -46,4 +45,13 @@ variable "component" {}
 
 variable "platform_config" {
   type = map(string)
+}
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 5.99.1"
+    }
+  }
 }
