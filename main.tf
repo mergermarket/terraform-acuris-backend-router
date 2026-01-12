@@ -28,10 +28,14 @@ module "alb" {
   }
 }
 
+locals {
+  simple_env_name = can(split("_", var.env)) ? split("_", var.env)[0] : var.env
+}
+
 resource "aws_alb_target_group" "default_target_group" {
   name = replace(
     replace(
-      replace("${var.env}-default-${var.component}", "/(.{0,32}).*/", "$1"),
+      replace("${local.simple_env_name}-default-${var.component}", "/(.{0,32}).*/", "$1"),
     "/^-+|-+$/",
     ""),
   "_","-")
