@@ -1,8 +1,13 @@
+locals {
+  fixed_env_name  = replace(var.env, "_", "-")
+  simple_env_name = can(split("_", var.env)) ? split("_", var.env)[0] : var.env
+}
+
 module "alb" {
   source  = "mergermarket/alb/acuris"
   version = "2.2.2"
-
-  name   = format("%s-%s-router", var.env, var.component)
+  
+  name   = format("%s-%s-router", local.fixed_env_name, var.component)
   vpc_id = var.platform_config["vpc"]
   subnet_ids = split(
     ",",
@@ -26,11 +31,7 @@ module "alb" {
     environment = var.env
     team        = var.team
   }
-}
-
-locals {
-  simple_env_name = can(split("_", var.env)) ? split("_", var.env)[0] : var.env
-}
+} 
 
 resource "aws_alb_target_group" "default_target_group" {
   name = replace(
