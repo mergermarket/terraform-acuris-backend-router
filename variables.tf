@@ -92,3 +92,9 @@ variable "idle_timeout" {
   type        = string
   default     = "60"
 }
+
+variable "alb_ssl_policy" {
+  description = "The SSL policy for the ALB"
+  type        = string
+  default     = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
+}

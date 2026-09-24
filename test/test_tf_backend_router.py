@@ -56,6 +56,7 @@ Plan: 4 to add, 0 to change, 0 to destroy.
       + drop_invalid_header_fields                                   = false
       + enable_deletion_protection                                   = false
       + enable_http2                                                 = true
+      + enable_prefix_for_ipv6_source_nat                            = (known after apply)
       + enable_tls_version_and_cipher_suite_headers                  = false
       + enable_waf_fail_open                                         = false
       + enable_xff_client_port                                       = false
@@ -264,6 +265,7 @@ Plan: 4 to add, 0 to change, 0 to destroy.
       + drop_invalid_header_fields                                   = false
       + enable_deletion_protection                                   = false
       + enable_http2                                                 = true
+      + enable_prefix_for_ipv6_source_nat                            = (known after apply)
       + enable_tls_version_and_cipher_suite_headers                  = false
       + enable_waf_fail_open                                         = false
       + enable_xff_client_port                                       = false
