@@ -5,7 +5,7 @@ locals {
 
 module "alb" {
   source  = "mergermarket/alb/acuris"
-  version = "2.2.2"
+  version = "2.2.3"
   
   name   = format("%s-%s-router", local.fixed_env_name, var.component)
   vpc_id = var.platform_config["vpc"]
@@ -31,6 +31,7 @@ module "alb" {
     environment = var.env
     team        = var.team
   }
+  ssl_policy = var.alb_ssl_policy
 } 
 
 resource "aws_alb_target_group" "default_target_group" {
